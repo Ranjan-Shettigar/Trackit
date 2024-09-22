@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,14 +31,11 @@ export default function Dashboard() {
   })
 
   // Predefined mode and type options
-  const [modeOptions, setModeOptions] = useState<string[]>(['Cred', 'GPay', 'Cash', 'Loan'])
-  const [typeOptions, setTypeOptions] = useState<string[]>(['Received', 'Paid'])
+  const modeOptions = ['Cred', 'GPay', 'Cash', 'Loan']
+  const typeOptions = ['Received', 'Paid']
 
-  useEffect(() => {
-    fetchTransactions()
-  }, [])
-
-  const fetchTransactions = async () => {
+  // Memoized fetchTransactions function using useCallback
+  const fetchTransactions = useCallback(async () => {
     try {
       console.log('Fetching transactions...')
       const resultList = await pb.collection('transactions').getList<Transaction>(1, 50, {
@@ -51,7 +48,11 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching transactions:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchTransactions()
+  }, [fetchTransactions])
 
   const calculateTotals = (transactions: Transaction[]) => {
     const total = transactions.reduce((acc, transaction) => {
@@ -110,7 +111,7 @@ export default function Dashboard() {
             <CardTitle>Total Balance</CardTitle>
           </CardHeader>
           <CardContent>
-          <p className="text-3xl font-bold text-blue-500">${totalBalance.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-blue-500">${totalBalance.toFixed(2)}</p>
           </CardContent>
         </Card>
         
@@ -119,7 +120,7 @@ export default function Dashboard() {
             <CardTitle>Monthly Spending</CardTitle>
           </CardHeader>
           <CardContent>
-          <p className="text-3xl font-bold text-red-400">${monthlySpending.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-red-400">${monthlySpending.toFixed(2)}</p>
           </CardContent>
         </Card>
         
@@ -128,7 +129,7 @@ export default function Dashboard() {
             <CardTitle>Recent Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-          <p className="text-3xl font-bold text-green-500">{transactions.length}</p>
+            <p className="text-3xl font-bold text-green-500">{transactions.length}</p>
           </CardContent>
         </Card>
       </div>

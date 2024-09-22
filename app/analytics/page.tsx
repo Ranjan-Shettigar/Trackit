@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectValue, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -35,10 +35,6 @@ export default function Analytics() {
     fetchTransactions();
   }, []);
 
-  useEffect(() => {
-    applyFilters();
-  }, [transactions, filter]);
-
   const fetchTransactions = async () => {
     try {
       const resultList = await pb.collection('transactions').getList<Transaction>(1, 1000, {
@@ -54,7 +50,7 @@ export default function Analytics() {
     setFilter(prevFilter => ({ ...prevFilter, [name]: value }));
   };
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...transactions];
 
     // Apply time frame filter
@@ -86,7 +82,11 @@ export default function Analytics() {
     }
 
     setFilteredTransactions(filtered);
-  };
+  }, [transactions, filter]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [transactions, filter, applyFilters]);
 
   const getCategoryData = () => {
     const categoryMap = filteredTransactions.reduce((acc, transaction) => {
@@ -258,7 +258,7 @@ export default function Analytics() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="amount" stroke="#8884d8" activeDot={{ r: 8 }} />
+                <Line type="monotone" dataKey="amount" stroke="#82ca9d" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

@@ -5,13 +5,25 @@ import { useRouter } from 'next/navigation'
 import AuthForm from '@/components/AuthForm'
 import pb, { registerUser } from '@/utils/pocketbase'
 
+interface User {
+  id: string;
+  email: string;
+  username?: string;
+  provider: string;
+  // Add any other specific fields you expect from the user model
+}
+
 export default function Login() {
   const [error, setError] = useState<string | null>(null)
-  const [user, setUser] = useState<any | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    setUser(pb.authStore.model)
+    const currentUser = pb.authStore.model as User | null;
+    setUser(currentUser ? {
+      ...currentUser,
+      provider: currentUser.provider || 'email' // Assuming 'email' as default provider
+    } : null);
   }, [])
 
   const handleAuth = async (email: string, password: string, username: string | undefined, isLogin: boolean) => {
@@ -46,7 +58,7 @@ export default function Login() {
     try {
       if (pb.authStore.model) {
         await pb.collection('users').update(pb.authStore.model.id, { username })
-        setUser({ ...pb.authStore.model, username })
+        setUser({ ...pb.authStore.model, username, provider: 'email' } as User)
       } else {
         throw new Error('User is not authenticated')
       }

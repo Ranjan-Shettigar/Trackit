@@ -21,7 +21,6 @@ export default function Settings() {
   const [newUsername, setNewUsername] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [currentPassword, setCurrentPassword] = useState('')
   const [emailNotifications, setEmailNotifications] = useState(false)
 
   useEffect(() => {
@@ -43,24 +42,18 @@ export default function Settings() {
 
   const handleUsernameChange = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!currentPassword) {
-      alert('Please enter your current password')
-      return
-    }
     try {
       if (user) {
         await pb.collection('users').update(user.id, {
           username: newUsername,
-          password: currentPassword,
         })
         alert('Username updated successfully')
         setNewUsername('')
-        setCurrentPassword('')
         fetchUserData() // Refresh user data
       }
     } catch (error) {
       console.error('Error updating username:', error)
-      alert('Failed to update username. Please check your current password.')
+      alert('Failed to update username. Please try again.')
     }
   }
 
@@ -70,25 +63,19 @@ export default function Settings() {
       alert('New passwords do not match')
       return
     }
-    if (!currentPassword) {
-      alert('Please enter your current password')
-      return
-    }
     try {
       if (user) {
         await pb.collection('users').update(user.id, {
           password: newPassword,
           passwordConfirm: confirmPassword,
-          oldPassword: currentPassword,
         })
         alert('Password updated successfully')
         setNewPassword('')
         setConfirmPassword('')
-        setCurrentPassword('')
       }
     } catch (error) {
       console.error('Error updating password:', error)
-      alert('Failed to update password. Please check your current password.')
+      alert('Failed to update password. Please try again.')
     }
   }
 
@@ -141,16 +128,6 @@ export default function Settings() {
                 required
               />
             </div>
-            <div>
-              <Label htmlFor="currentPasswordUsername">Current Password</Label>
-              <Input
-                id="currentPasswordUsername"
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-              />
-            </div>
             <Button type="submit">Update Username</Button>
           </form>
         </CardContent>
@@ -162,16 +139,6 @@ export default function Settings() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handlePasswordChange} className="space-y-4">
-            <div>
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-              />
-            </div>
             <div>
               <Label htmlFor="newPassword">New Password</Label>
               <Input

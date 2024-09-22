@@ -6,8 +6,13 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Icons } from "./ui/icons"
-import pb, { registerUser } from '../utils/pocketbase'
+import { registerUser } from '../utils/pocketbase'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
+interface User {
+  provider: string;
+  username?: string;
+}
 
 interface AuthFormProps {
   onAuth: (email: string, password: string, username: string | undefined, isLogin: boolean) => Promise<void>
@@ -15,7 +20,7 @@ interface AuthFormProps {
   onSetUsername: (username: string) => Promise<void>
   onDeleteAccount: () => Promise<void>
   error: string | null
-  user: any | null
+  user: User | null
 }
 
 export default function AuthForm({ onAuth, onGoogleAuth, onSetUsername, onDeleteAccount, error: propError, user }: AuthFormProps) {
@@ -131,9 +136,9 @@ export default function AuthForm({ onAuth, onGoogleAuth, onSetUsername, onDelete
       case 2:
         return (
           <div className="text-center space-y-4">
-            <p>We've sent a verification email to <strong>{email}</strong>.</p>
+            <p>We&apos;ve sent a verification email to <strong>{email}</strong>.</p>
             <p>Please check your inbox and click on the verification link to complete your registration.</p>
-            <p>Once verified, you'll be automatically logged in.</p>
+            <p>Once verified, you&apos;ll be automatically logged in.</p>
           </div>
         )
       case 3:

@@ -1,16 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import Layout from '@/components/layout'
-import pb from '@/utils/pocketbase'
-import { RecordModel } from 'pocketbase'
-import * as XLSX from 'xlsx'
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Layout from '@/components/layout';
+import pb from '@/utils/pocketbase';
+import { RecordModel } from 'pocketbase';
+import * as XLSX from 'xlsx';
 
 interface Transaction extends RecordModel {
   date: string;
@@ -28,63 +27,63 @@ interface FilterState {
 }
 
 export default function Transactions() {
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [filter, setFilter] = useState<FilterState>({ type: '', mode: '', startDate: '', endDate: '' })
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [filter, setFilter] = useState<FilterState>({ type: '', mode: '', startDate: '', endDate: '' });
 
-  useEffect(() => {
-    fetchTransactions()
-  }, [currentPage, filter])
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
-      let filterString = ''
-      if (filter.type) filterString += `type = "${filter.type}"`
-      if (filter.mode) filterString += (filterString ? ' && ' : '') + `mode = "${filter.mode}"`
-      if (filter.startDate) filterString += (filterString ? ' && ' : '') + `date >= "${filter.startDate}"`
-      if (filter.endDate) filterString += (filterString ? ' && ' : '') + `date <= "${filter.endDate}"`
+      let filterString = '';
+      if (filter.type) filterString += `type = "${filter.type}"`;
+      if (filter.mode) filterString += (filterString ? ' && ' : '') + `mode = "${filter.mode}"`;
+      if (filter.startDate) filterString += (filterString ? ' && ' : '') + `date >= "${filter.startDate}"`;
+      if (filter.endDate) filterString += (filterString ? ' && ' : '') + `date <= "${filter.endDate}"`;
 
       const resultList = await pb.collection('transactions').getList<Transaction>(currentPage, 10, {
         sort: '-date',
         filter: filterString,
-      })
-      setTransactions(resultList.items)
-      setTotalPages(Math.ceil(resultList.totalItems / 10))
+      });
+      setTransactions(resultList.items);
+      setTotalPages(Math.ceil(resultList.totalItems / 10));
     } catch (error) {
-      console.error('Error fetching transactions:', error)
+      console.error('Error fetching transactions:', error);
     }
-  }
+  }, [currentPage, filter]);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFilter(prev => ({ ...prev, [name]: value }))
-    setCurrentPage(1)
-  }
+    const { name, value } = e.target;
+    setFilter(prev => ({ ...prev, [name]: value }));
+    setCurrentPage(1);
+  };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this transaction?')) {
       try {
-        await pb.collection('transactions').delete(id)
-        fetchTransactions()
+        await pb.collection('transactions').delete(id);
+        fetchTransactions();
       } catch (error) {
-        console.error('Error deleting transaction:', error)
+        console.error('Error deleting transaction:', error);
       }
     }
-  }
+  };
 
   const exportToExcel = async () => {
     try {
-      let filterString = ''
-      if (filter.type) filterString += `type = "${filter.type}"`
-      if (filter.mode) filterString += (filterString ? ' && ' : '') + `mode = "${filter.mode}"`
-      if (filter.startDate) filterString += (filterString ? ' && ' : '') + `date >= "${filter.startDate}"`
-      if (filter.endDate) filterString += (filterString ? ' && ' : '') + `date <= "${filter.endDate}"`
+      let filterString = '';
+      if (filter.type) filterString += `type = "${filter.type}"`;
+      if (filter.mode) filterString += (filterString ? ' && ' : '') + `mode = "${filter.mode}"`;
+      if (filter.startDate) filterString += (filterString ? ' && ' : '') + `date >= "${filter.startDate}"`;
+      if (filter.endDate) filterString += (filterString ? ' && ' : '') + `date <= "${filter.endDate}"`;
 
       const resultList = await pb.collection('transactions').getFullList<Transaction>({
         sort: '-date',
         filter: filterString,
-      })
+      });
 
       const worksheet = XLSX.utils.json_to_sheet(resultList.map(item => ({
         Date: new Date(item.date).toLocaleDateString(),
@@ -92,16 +91,16 @@ export default function Transactions() {
         Amount: item.amount,
         Type: item.type,
         Mode: item.mode
-      })))
+      })));
 
-      const workbook = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions")
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
 
-      XLSX.writeFile(workbook, "transactions.xlsx")
+      XLSX.writeFile(workbook, "transactions.xlsx");
     } catch (error) {
-      console.error('Error exporting transactions:', error)
+      console.error('Error exporting transactions:', error);
     }
-  }
+  };
 
   return (
     <Layout>
@@ -226,5 +225,5 @@ export default function Transactions() {
         </CardContent>
       </Card>
     </Layout>
-  )
+  );
 }
