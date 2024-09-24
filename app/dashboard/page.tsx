@@ -26,12 +26,13 @@ export default function Dashboard() {
     date: '',
     description: '',
     amount: '',
-    mode: '',
-    type: ''
+    mode: 'GPay', // Set default mode to 'GPay'
+    type: 'Paid'  // Set default type to 'Paid'
   })
+  const [isSubmitting, setIsSubmitting] = useState(false) // State to track submission
 
   // Predefined mode and type options
-  const modeOptions = ['Cred', 'GPay', 'Cash', 'Loan']
+  const modeOptions = ['Cred', 'GPay', 'Cash', 'Loan', 'Credit card']    
   const typeOptions = ['Received', 'Paid']
 
   // Memoized fetchTransactions function using useCallback
@@ -81,6 +82,9 @@ export default function Dashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return; // Prevent multiple submissions
+
+    setIsSubmitting(true); // Set submitting state
     try {
       console.log('Submitting new transaction:', newTransaction)
       await pb.collection('transactions').create({
@@ -88,16 +92,19 @@ export default function Dashboard() {
         amount: parseFloat(newTransaction.amount),
         user: pb.authStore.model?.id
       })
+      alert("Transaction added successfully!"); // Alert on successful submission
       setNewTransaction({
         date: '',
         description: '',
         amount: '',
-        mode: '',
-        type: ''
+        mode: 'GPay', // Reset to default mode
+        type: 'Paid'   // Reset to default type
       })
       fetchTransactions()
     } catch (error) {
       console.error('Error creating transaction:', error)
+    } finally {
+      setIsSubmitting(false); // Reset submitting state
     }
   }
 
@@ -207,7 +214,7 @@ export default function Dashboard() {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit">Add Transaction</Button>
+            <Button type="submit" disabled={isSubmitting}>Add Transaction</Button> {/* Disable button on submitting */}
           </form>
         </CardContent>
       </Card>

@@ -16,7 +16,7 @@ interface Transaction extends RecordModel {
   description: string;
   amount: number;
   type: 'Paid' | 'Received';
-  mode: 'Cred' | 'GPay' | 'Cash' | 'Loan';
+  mode: 'Cred' | 'GPay' | 'Cash' | 'Loan' | 'Credit card';
 }
 
 interface FilterState {
@@ -143,6 +143,7 @@ export default function Transactions() {
                 <option value="GPay">GPay</option>
                 <option value="Cash">Cash</option>
                 <option value="Loan">Loan</option>
+                <option value="Credit card">Credit card</option>
               </select>
             </div>
 

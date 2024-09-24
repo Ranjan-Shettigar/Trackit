@@ -15,7 +15,7 @@ interface Transaction extends RecordModel {
   description: string;
   amount: number;
   type: 'Paid' | 'Received';
-  mode: 'Cred' | 'GPay' | 'Cash' | 'Loan';
+  mode: 'Cred' | 'GPay' | 'Cash' | 'Loan' |'Credit card';
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
@@ -190,6 +190,8 @@ export default function Analytics() {
                   <SelectItem value="GPay">GPay</SelectItem>
                   <SelectItem value="Cash">Cash</SelectItem>
                   <SelectItem value="Loan">Loan</SelectItem>
+                  <SelectItem value="Credit card">Credit card</SelectItem>
+                  
                 </SelectContent>
               </Select>
             </div>

@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import AuthForm from '@/components/AuthForm'
-import pb, { registerUser } from '@/utils/pocketbase'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import AuthForm from '@/components/AuthForm';
+import pb, { registerUser, sendPasswordResetEmail } from '@/utils/pocketbase';
 
 interface User {
   id: string;
@@ -14,85 +14,73 @@ interface User {
 }
 
 export default function Login() {
-  const [error, setError] = useState<string | null>(null)
-  const [user, setUser] = useState<User | null>(null)
-  const router = useRouter()
+  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const currentUser = pb.authStore.model as User | null;
-    setUser(currentUser ? {
-      ...currentUser,
-      provider: currentUser.provider || 'email' // Assuming 'email' as default provider
-    } : null);
-  }, [])
+    setUser(
+      currentUser
+        ? {
+            ...currentUser,
+            provider: currentUser.provider || 'email', // Assuming 'email' as default provider
+          }
+        : null
+    );
+
+    // Redirect to dashboard if user is already logged in
+    if (currentUser) {
+      router.push('/dashboard');
+    }
+  }, [router]);
 
   const handleAuth = async (email: string, password: string, username: string | undefined, isLogin: boolean) => {
     try {
       if (isLogin) {
-        await pb.collection('users').authWithPassword(email, password)
+        await pb.collection('users').authWithPassword(email, password);
+        router.push('/dashboard');
       } else {
         if (username) {
-          await registerUser(email, password, username)
+          await registerUser(email, password, username);
+          router.push('/dashboard');
         } else {
-          throw new Error('Username is required for registration')
+          throw new Error('Username is required for registration');
         }
       }
-      router.push('/dashboard')
     } catch (error) {
-      console.error('Auth error:', error)
-      setError((error as Error).message || 'An error occurred during authentication')
+      console.error('Auth error:', error);
+      setError((error as Error).message || 'An error occurred during authentication');
     }
-  }
+  };
 
   const handleGoogleAuth = async () => {
     try {
-      await pb.collection('users').authWithOAuth2({ provider: 'google' })
-      router.push('/dashboard')
+      await pb.collection('users').authWithOAuth2({ provider: 'google' });
+      router.push('/dashboard');
     } catch (error) {
-      console.error('Google auth error:', error)
-      setError((error as Error).message || 'An error occurred during Google authentication')
+      console.error('Google auth error:', error);
+      setError((error as Error).message || 'An error occurred during Google authentication');
     }
-  }
+  };
 
-  const handleSetUsername = async (username: string) => {
+  const handleForgotPassword = async (email: string) => {
     try {
-      if (pb.authStore.model) {
-        await pb.collection('users').update(pb.authStore.model.id, { username })
-        setUser({ ...pb.authStore.model, username, provider: 'email' } as User)
-      } else {
-        throw new Error('User is not authenticated')
-      }
+      await sendPasswordResetEmail(email);
+      setError('Password reset email sent. Please check your inbox.');
     } catch (error) {
-      console.error('Set username error:', error)
-      setError((error as Error).message || 'An error occurred while setting the username')
+      console.error('Forgot password error:', error);
+      setError((error as Error).message || 'An error occurred while resetting the password');
     }
-  }
-
-  const handleDeleteAccount = async () => {
-    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      try {
-        if (pb.authStore.model) {
-          await pb.collection('users').delete(pb.authStore.model.id)
-          pb.authStore.clear()
-          router.push('/login')
-        } else {
-          throw new Error('User is not authenticated')
-        }
-      } catch (error) {
-        console.error('Delete account error:', error)
-        setError((error as Error).message || 'An error occurred while deleting the account')
-      }
-    }
-  }
+  };
 
   return (
     <AuthForm
       onAuth={handleAuth}
       onGoogleAuth={handleGoogleAuth}
-      onSetUsername={handleSetUsername}
-      onDeleteAccount={handleDeleteAccount}
+      onForgotPassword={handleForgotPassword} // Passing the forgot password handler
       error={error}
       user={user}
     />
-  )
+  );
 }

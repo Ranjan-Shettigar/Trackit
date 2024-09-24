@@ -1,8 +1,6 @@
 import PocketBase from 'pocketbase';
 
-// const pocketbaseUrl = 'http://127.0.0.1:8090';
 const pocketbaseUrl = 'https://trackit.pockethost.io/';
-
 let pb: PocketBase;
 
 if (typeof window !== 'undefined') {
@@ -17,7 +15,7 @@ if (typeof window !== 'undefined') {
 
   // Save auth state to cookies
   const saveAuthToCookies = () => {
-    document.cookie = pb.authStore.exportToCookie({ httpOnly: false });
+    document.cookie = pb.authStore.exportToCookie({ httpOnly: false, secure: true });
   };
 
   // Initial load
@@ -42,13 +40,13 @@ export const authRefresh = async () => {
   }
 };
 
-export const sendVerificationEmail = async (email: string) => {
+export const sendPasswordResetEmail = async (email: string) => {
   try {
-    await pb.collection('users').requestVerification(email);
+    await pb.collection('users').requestPasswordReset(email);
     return true;
   } catch (error) {
-    console.error('Failed to send verification email:', error);
-    return false;
+    console.error('Failed to send password reset email:', error);
+    throw new Error('Unable to send password reset email. Please try again later.');
   }
 };
 
@@ -64,7 +62,7 @@ export const registerUser = async (email: string, password: string, username: st
     return record;
   } catch (error) {
     console.error('Failed to create user:', error);
-    throw error;
+    throw new Error('Registration failed. Please ensure the details are correct and try again.');
   }
 };
 
