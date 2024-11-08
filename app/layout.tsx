@@ -21,7 +21,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
-          <SpeedInsights />
+           <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
