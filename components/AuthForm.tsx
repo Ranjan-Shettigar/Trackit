@@ -7,23 +7,23 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Icons } from "./ui/icons"
-import { registerUser, sendPasswordResetEmail } from "../utils/pocketbase"
+import { registerUser} from "../utils/pocketbase"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-interface User {
-  provider: string
-  username?: string
-}
+// interface User {
+//   provider: string
+//   username?: string
+// }
 
 interface AuthFormProps {
   onAuth: (email: string, password: string, username: string | undefined, isLogin: boolean) => Promise<void>;
   onGoogleAuth: () => Promise<void>;
   onForgotPassword: (email: string) => Promise<void>;
   error: string | null;
-  user: User | null;
+  // user: User | null;
 }
 
-export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error: propError, user }: AuthFormProps) {
+export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error: propError }: AuthFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [username, setUsername] = useState("")
@@ -52,7 +52,7 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
       } else {
         await registerUser(email, password, username)
         setStep(2)
-        setSuccessMessage(`We've sent a verification email to ${email}. Please check your inbox.`)
+        setSuccessMessage(`Weve sent a verification email to ${email}. Please check your inbox.`)
         setTimeout(() => {
           router.push("/login")
         }, 3000)
@@ -195,7 +195,7 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
 
           {step === 2 && (
             <div className="text-center space-y-4">
-              <p>We've sent a verification email to <strong>{email}</strong>.</p>
+              <p>Weve sent a verification email to <strong>{email}</strong>.</p>
               <p>Please check your inbox and click on the verification link to complete your registration.</p>
             </div>
           )}
@@ -211,7 +211,7 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
 
           {step === 1 && !isForgotPassword && (
             <Button variant="link" className="w-full" onClick={() => setIsLogin(!isLogin)} disabled={isLoading}>
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin ? "Don&apos;t have an account? Sign up" : "Already have an account? Sign in"}
             </Button>
           )}
         </CardFooter>

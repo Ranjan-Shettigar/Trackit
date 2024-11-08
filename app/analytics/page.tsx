@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectValue, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, AreaChart, Area } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, AreaChart, Area } from 'recharts';
 import Layout from '@/components/layout';
 import pb from '@/utils/pocketbase';
 import { RecordModel } from 'pocketbase';
@@ -17,8 +17,6 @@ interface Transaction extends RecordModel {
   type: 'Paid' | 'Received';
   mode: 'Cred' | 'GPay' | 'Cash' | 'Loan' | 'Credit card';
 }
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export default function Analytics() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);

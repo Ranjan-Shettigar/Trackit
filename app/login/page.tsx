@@ -5,34 +5,21 @@ import { useRouter } from 'next/navigation';
 import AuthForm from '@/components/AuthForm';
 import pb, { registerUser, sendPasswordResetEmail } from '@/utils/pocketbase';
 
-interface User {
-  id: string;
-  email: string;
-  username?: string;
-  provider: string;
-  // Add any other specific fields you expect from the user model
-}
-
 export default function Login() {
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const currentUser = pb.authStore.model as User | null;
-    setUser(
-      currentUser
-        ? {
-            ...currentUser,
-            provider: currentUser.provider || 'email', // Assuming 'email' as default provider
-          }
-        : null
-    );
+    const checkAuthStatus = async () => {
+      if (pb.authStore.isValid) {
+        router.push('/dashboard');
+      } else {
+        setIsLoading(false);
+      }
+    };
 
-    // Redirect to dashboard if user is already logged in
-    if (currentUser) {
-      router.push('/dashboard');
-    }
+    checkAuthStatus();
   }, [router]);
 
   const handleAuth = async (email: string, password: string, username: string | undefined, isLogin: boolean) => {
@@ -74,13 +61,16 @@ export default function Login() {
     }
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>; // You can replace this with a proper loading component
+  }
+
   return (
     <AuthForm
       onAuth={handleAuth}
       onGoogleAuth={handleGoogleAuth}
-      onForgotPassword={handleForgotPassword} // Passing the forgot password handler
+      onForgotPassword={handleForgotPassword}
       error={error}
-      user={user}
     />
   );
 }

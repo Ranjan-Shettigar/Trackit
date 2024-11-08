@@ -66,4 +66,15 @@ export const registerUser = async (email: string, password: string, username: st
   }
 };
 
+// Add this new function
+export const sendVerificationEmail = async (email: string) => {
+  try {
+    await pb.collection('users').requestVerification(email);
+    return true;
+  } catch (error) {
+    console.error('Failed to send verification email:', error);
+    return false;
+  }
+};
+
 export default pb;
