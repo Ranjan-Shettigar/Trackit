@@ -52,7 +52,7 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
       } else {
         await registerUser(email, password, username)
         setStep(2)
-        setSuccessMessage(`Weve sent a verification email to ${email}. Please check your inbox.`)
+        setSuccessMessage(`We have sent a verification email to ${email}. Please check your inbox.`)
         setTimeout(() => {
           router.push("/login")
         }, 3000)
@@ -195,7 +195,7 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
 
           {step === 2 && (
             <div className="text-center space-y-4">
-              <p>Weve sent a verification email to <strong>{email}</strong>.</p>
+              <p>We have sent a verification email to <strong>{email}</strong>.</p>
               <p>Please check your inbox and click on the verification link to complete your registration.</p>
             </div>
           )}
@@ -211,7 +211,7 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
 
           {step === 1 && !isForgotPassword && (
             <Button variant="link" className="w-full" onClick={() => setIsLogin(!isLogin)} disabled={isLoading}>
-              {isLogin ? "Don&apos;t have an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </Button>
           )}
         </CardFooter>
