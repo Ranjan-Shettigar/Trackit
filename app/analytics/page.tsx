@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectValue, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, AreaChart, Area } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import Layout from '@/components/layout';
 import pb from '@/utils/pocketbase';
 import { RecordModel } from 'pocketbase';
@@ -15,7 +15,7 @@ interface Transaction extends RecordModel {
   description: string;
   amount: number;
   type: 'Paid' | 'Received';
-  mode: 'Cred' | 'GPay' | 'Cash' | 'Loan' | 'Credit card';
+  mode: 'Cred' | 'GPay' | 'Cash' | 'Loan' |'Credit card';
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
@@ -88,35 +88,56 @@ export default function Analytics() {
     applyFilters();
   }, [transactions, filter, applyFilters]);
 
-  const getTotalIncomeExpenses = () => {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const data = monthNames.map(month => ({
-      name: month,
-      Income: 0,
-      Expenses: 0
-    }));
-
-    filteredTransactions.forEach(transaction => {
-      const date = new Date(transaction.date);
-      const monthIndex = date.getMonth();
-      if (transaction.type === 'Received') {
-        data[monthIndex].Income += transaction.amount;
-      } else {
-        data[monthIndex].Expenses += transaction.amount;
+  const getCategoryData = () => {
+    const categoryMap = filteredTransactions.reduce((acc, transaction) => {
+      if (transaction.type === 'Paid') {
+        acc[transaction.mode] = (acc[transaction.mode] || 0) + transaction.amount;
       }
-    });
+      return acc;
+    }, {} as Record<string, number>);
 
-    return data;
+    return Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
   };
 
-  const getBalanceOverTime = () => {
-    let balance = 0;
-    return filteredTransactions
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .map(transaction => {
-        balance += transaction.type === 'Received' ? transaction.amount : -transaction.amount;
-        return { date: transaction.date, balance };
-      });
+  const getMonthlyData = () => {
+    const monthlyMap = filteredTransactions.reduce((acc, transaction) => {
+      const date = new Date(transaction.date);
+      const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (transaction.type === 'Paid') {
+        acc[monthYear] = (acc[monthYear] || 0) + transaction.amount;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(monthlyMap)
+      .map(([date, amount]) => ({ date, amount }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  };
+
+  const SpendingTrends = () => {
+    const chartData = filteredTransactions.slice(0, 7).map(t => ({
+      date: new Date(t.date).toLocaleDateString(),
+      amount: t.type === 'Received' ? t.amount : -t.amount
+    })).reverse();
+
+    return (
+      <Card className="mb-6 mt-6">  
+        <CardHeader>
+          <CardTitle>Spending Trends</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="amount" stroke="#0070F3" />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
@@ -170,6 +191,7 @@ export default function Analytics() {
                   <SelectItem value="Cash">Cash</SelectItem>
                   <SelectItem value="Loan">Loan</SelectItem>
                   <SelectItem value="Credit card">Credit card</SelectItem>
+                  
                 </SelectContent>
               </Select>
             </div>
@@ -197,61 +219,55 @@ export default function Analytics() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Total Income</CardTitle>
+            <CardTitle>Spending by Category</CardTitle>
           </CardHeader>
           <CardContent>
-            <h2 className="text-3xl font-bold">${filteredTransactions.reduce((sum, t) => t.type === 'Received' ? sum + t.amount : sum, 0).toFixed(2)}</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={getCategoryData()}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  label
+                >
+                  {getCategoryData().map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader>
-            <CardTitle>Total Expenses</CardTitle>
+            <CardTitle>Monthly Spending Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <h2 className="text-3xl font-bold">${filteredTransactions.reduce((sum, t) => t.type === 'Paid' ? sum + t.amount : sum, 0).toFixed(2)}</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={getMonthlyData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="amount" stroke="#82ca9d" />
+              </LineChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Income vs. Expenses</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={getTotalIncomeExpenses()}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="Income" stroke="#82ca9d" />
-              <Line type="monotone" dataKey="Expenses" stroke="#8884d8" />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Balance Over Time</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={getBalanceOverTime()}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Area type="monotone" dataKey="balance" stroke="#82ca9d" fill="#82ca9d" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <SpendingTrends />
     </Layout>
   );
 }
