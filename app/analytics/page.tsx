@@ -16,7 +16,9 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend 
+  Legend,
+  BarChart,
+  Bar
 } from 'recharts';
 import Layout from '@/components/layout';
 import pb from '@/utils/pocketbase';
@@ -103,28 +105,59 @@ export default function Analytics() {
 
   const getCategoryData = () => {
     const categoryMap = filteredTransactions.reduce((acc, transaction) => {
-      if (transaction.type === 'Paid') {
-        acc[transaction.mode] = (acc[transaction.mode] || 0) + transaction.amount;
-      }
+      acc[transaction.mode] = (acc[transaction.mode] || 0) + transaction.amount;
       return acc;
     }, {} as Record<string, number>);
 
     return Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
   };
 
-  const getMonthlyData = () => {
-    const monthlyMap = filteredTransactions.reduce((acc, transaction) => {
-      const date = new Date(transaction.date);
-      const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  const getDailySpendingReceivingData = () => {
+    const dailyMap = filteredTransactions.reduce((acc, transaction) => {
+      const date = new Date(transaction.date).toLocaleDateString();
+      if (!acc[date]) {
+        acc[date] = { date, spend: 0, receive: 0 };
+      }
       if (transaction.type === 'Paid') {
-        acc[monthYear] = (acc[monthYear] || 0) + transaction.amount;
+        acc[date].spend += transaction.amount;
+      } else if (transaction.type === 'Received') {
+        acc[date].receive += transaction.amount;
       }
       return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<string, { date: string; spend: number; receive: number }>);
 
-    return Object.entries(monthlyMap)
-      .map(([date, amount]) => ({ date, amount }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+    return Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
+  };
+
+  const getBarChartData = () => {
+    const barChartMap = filteredTransactions.reduce((acc, transaction) => {
+      const date = new Date(transaction.date).toLocaleDateString();
+      if (!acc[date]) {
+        acc[date] = { date, spend: 0, receive: 0 };
+      }
+      if (transaction.type === 'Paid') {
+        acc[date].spend += transaction.amount;
+      } else if (transaction.type === 'Received') {
+        acc[date].receive += transaction.amount;
+      }
+      return acc;
+    }, {} as Record<string, { date: string; spend: number; receive: number }>);
+
+    return Object.values(barChartMap).sort((a, b) => a.date.localeCompare(b.date));
+  };
+
+  const getCumulativeImpactData = () => {
+    let balance = 0;
+    const cumulativeData = filteredTransactions.map(transaction => {
+      const amount = transaction.type === 'Paid' ? -transaction.amount : transaction.amount;
+      balance += amount;
+      return {
+        date: new Date(transaction.date).toLocaleDateString(),
+        balance: balance
+      };
+    });
+
+    return cumulativeData;
   };
 
   const SpendingTrends = () => {
@@ -136,7 +169,7 @@ export default function Analytics() {
     return (
       <Card className="mb-6 mt-6">  
         <CardHeader>
-          <CardTitle>Spending Trends</CardTitle>
+          <CardTitle>Trends</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -204,7 +237,6 @@ export default function Analytics() {
                   <SelectItem value="Cash">Cash</SelectItem>
                   <SelectItem value="Loan">Loan</SelectItem>
                   <SelectItem value="Credit card">Credit card</SelectItem>
-                  
                 </SelectContent>
               </Select>
             </div>
@@ -235,7 +267,7 @@ export default function Analytics() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Spending by Category</CardTitle>
+            <CardTitle>By Category</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -263,17 +295,55 @@ export default function Analytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Monthly Spending Trend</CardTitle>
+            <CardTitle>Daily Spending vs. Receiving</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={getMonthlyData()}>
+              <LineChart data={getDailySpendingReceivingData()}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="amount" stroke="#82ca9d" />
+                <Line type="monotone" dataKey="spend" stroke="#8884d8" />
+                <Line type="monotone" dataKey="receive" stroke="#82ca9d" />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Spend and Receive</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={getBarChartData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="spend" fill="#8884d8" />
+                <Bar dataKey="receive" fill="#82ca9d" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Cumulative Financial Impact</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={getCumulativeImpactData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="balance" stroke="#8884d8" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

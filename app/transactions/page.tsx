@@ -17,6 +17,7 @@ interface Transaction extends RecordModel {
   amount: number;
   type: 'Paid' | 'Received';
   mode: 'Cred' | 'GPay' | 'Cash' | 'Loan' | 'Credit card';
+  created: string; // Add the created field
 }
 
 interface FilterState {
@@ -87,8 +88,9 @@ export default function Transactions() {
 
       const worksheet = XLSX.utils.json_to_sheet(resultList.map(item => ({
         Date: new Date(item.date).toLocaleDateString(),
+        Time: new Date(item.created).toLocaleTimeString(),
         Description: item.description,
-        Amount: item.amount,
+        Amount: `₹${item.amount.toFixed(2)}`, // Use ₹ symbol
         Type: item.type,
         Mode: item.mode
       })));
@@ -183,7 +185,7 @@ export default function Transactions() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
+                <TableHead>Date & Time</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Type</TableHead>
@@ -194,10 +196,12 @@ export default function Transactions() {
             <TableBody>
               {transactions.map((transaction) => (
                 <TableRow key={transaction.id}>
-                  <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    {new Date(transaction.date).toLocaleDateString()} {new Date(transaction.created).toLocaleTimeString()}
+                  </TableCell>
                   <TableCell>{transaction.description}</TableCell>
                   <TableCell className={transaction.type === 'Received' ? 'text-green-500' : 'text-red-500'}>
-                    {transaction.type === 'Received' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                    {transaction.type === 'Received' ? '+' : '-'}₹{transaction.amount.toFixed(2)} {/* Use ₹ symbol */}
                   </TableCell>
                   <TableCell>{transaction.type}</TableCell>
                   <TableCell>{transaction.mode}</TableCell>

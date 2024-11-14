@@ -7,8 +7,11 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Transaction Manager',
+  title: 'Trackit',
   description: 'Manage your financial transactions with ease',
+  icons: {
+    icon: '/favicon.ico',  // Path to your favicon
+  },
 }
 
 export default function RootLayout({
@@ -18,10 +21,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head />
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
-           <SpeedInsights />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>

@@ -42,7 +42,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <header className={`${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'} shadow-sm`}>
         <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/dashboard" className="text-2xl font-bold">
-            FinanceTracker
+            Trackit
           </Link>
           <div className="hidden md:flex space-x-4">
             {navItems.map((item) => (

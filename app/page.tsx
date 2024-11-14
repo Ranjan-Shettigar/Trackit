@@ -5,7 +5,7 @@ export default async function Home() {
   const isAuthenticated = pb.authStore.isValid
 
   if (!isAuthenticated) {
-    redirect('/login')
+    redirect('/land')
   } else {
     redirect('/dashboard')
   }

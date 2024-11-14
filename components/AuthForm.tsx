@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -7,23 +7,16 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Icons } from "./ui/icons"
-import { registerUser} from "../utils/pocketbase"
+import { registerUser, sendPasswordResetEmail, isValidEmail } from "../utils/pocketbase"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-// interface User {
-//   provider: string
-//   username?: string
-// }
-
 interface AuthFormProps {
-  onAuth: (email: string, password: string, username: string | undefined, isLogin: boolean) => Promise<void>;
-  onGoogleAuth: () => Promise<void>;
-  onForgotPassword: (email: string) => Promise<void>;
-  error: string | null;
-  // user: User | null;
+  onAuth: (email: string, password: string, username: string | undefined, isLogin: boolean) => Promise<void>
+  onGoogleAuth: () => Promise<void>
+  error: string | null
 }
 
-export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error: propError }: AuthFormProps) {
+export default function AuthForm({ onAuth, onGoogleAuth, error: propError }: AuthFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [username, setUsername] = useState("")
@@ -37,7 +30,15 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
   const router = useRouter()
 
   useEffect(() => {
-    setError(propError)
+    setError(null)
+    setSuccessMessage(null)
+  }, [isLogin, isForgotPassword])
+
+  useEffect(() => {
+    if (propError) {
+      setError(propError)
+      setSuccessMessage(null)
+    }
   }, [propError])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -45,6 +46,12 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
     setIsLoading(true)
     setError(null)
     setSuccessMessage(null)
+
+    if (!isValidEmail(email)) {
+      setError("Please enter a valid email address.")
+      setIsLoading(false)
+      return
+    }
 
     try {
       if (isLogin) {
@@ -71,21 +78,22 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
     setError(null)
     setSuccessMessage(null)
 
-    if (!email) {
-      setError("Please enter your email address.")
+    if (!isValidEmail(email)) {
+      setError("Please enter a valid email address.")
       setIsLoading(false)
       return
     }
 
     try {
-      await onForgotPassword(email)
-      setSuccessMessage("Password reset email sent. Please check your inbox.")
-      setTimeout(() => {
-        router.push("/login")
-      }, 3000)
+      const result = await sendPasswordResetEmail(email)
+      if (result) {
+        setSuccessMessage("If an account exists with this email, a password reset link has been sent. Please check your inbox.")
+      } else {
+        setError("An error occurred while processing your request. Please try again later.")
+      }
     } catch (error) {
       console.error(error)
-      setError((error as Error).message || "Failed to send password reset email.")
+      setError("An unexpected error occurred. Please try again later.")
     } finally {
       setIsLoading(false)
     }
@@ -93,7 +101,6 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black px-4 py-12 sm:px-6 lg:px-8">
-
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
@@ -119,7 +126,7 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
           )}
 
           {successMessage && (
-            <Alert variant="default" className="mb-4">
+            <Alert variant="default" className="mb-4 bg-green-50 border-green-200 text-green-800">
               <AlertTitle>Success</AlertTitle>
               <AlertDescription>{successMessage}</AlertDescription>
             </Alert>
@@ -214,6 +221,9 @@ export default function AuthForm({ onAuth, onGoogleAuth, onForgotPassword, error
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </Button>
           )}
+          <Button variant="link" className="w-full" onClick={() => router.push("/")} disabled={isLoading}>
+            <span>Go to Home</span>
+          </Button>
         </CardFooter>
       </Card>
     </div>

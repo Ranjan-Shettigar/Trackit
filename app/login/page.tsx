@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthForm from '@/components/AuthForm';
-import pb, { registerUser, sendPasswordResetEmail } from '@/utils/pocketbase';
+import pb, { registerUser } from '@/utils/pocketbase';
 
 export default function Login() {
   const [error, setError] = useState<string | null>(null);
@@ -51,16 +51,6 @@ export default function Login() {
     }
   };
 
-  const handleForgotPassword = async (email: string) => {
-    try {
-      await sendPasswordResetEmail(email);
-      setError('Password reset email sent. Please check your inbox.');
-    } catch (error) {
-      console.error('Forgot password error:', error);
-      setError((error as Error).message || 'An error occurred while resetting the password');
-    }
-  };
-
   if (isLoading) {
     return <div>Loading...</div>; // You can replace this with a proper loading component
   }
@@ -69,7 +59,6 @@ export default function Login() {
     <AuthForm
       onAuth={handleAuth}
       onGoogleAuth={handleGoogleAuth}
-      onForgotPassword={handleForgotPassword}
       error={error}
     />
   );

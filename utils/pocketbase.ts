@@ -43,10 +43,11 @@ export const authRefresh = async () => {
 export const sendPasswordResetEmail = async (email: string) => {
   try {
     await pb.collection('users').requestPasswordReset(email);
+    console.log(`Password reset email sent to: ${email}`);
     return true;
   } catch (error) {
-    console.error('Failed to send password reset email:', error);
-    throw new Error('Unable to send password reset email. Please try again later.');
+    console.error('Error in sendPasswordResetEmail:', error);
+    return false;
   }
 };
 
@@ -66,7 +67,6 @@ export const registerUser = async (email: string, password: string, username: st
   }
 };
 
-// Add this new function
 export const sendVerificationEmail = async (email: string) => {
   try {
     await pb.collection('users').requestVerification(email);
@@ -75,6 +75,11 @@ export const sendVerificationEmail = async (email: string) => {
     console.error('Failed to send verification email:', error);
     return false;
   }
+};
+
+export const isValidEmail = (email: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 };
 
 export default pb;
