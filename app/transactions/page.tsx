@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Layout from '@/components/layout';
 import pb from '@/utils/pocketbase';
 import { RecordModel } from 'pocketbase';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 interface Transaction extends RecordModel {
   date: string;
@@ -86,19 +86,36 @@ export default function Transactions() {
         filter: filterString,
       });
 
-      const worksheet = XLSX.utils.json_to_sheet(resultList.map(item => ({
-        Date: new Date(item.date).toLocaleDateString(),
-        Time: new Date(item.created).toLocaleTimeString(),
-        Description: item.description,
-        Amount: `₹${item.amount.toFixed(2)}`, // Use ₹ symbol
-        Type: item.type,
-        Mode: item.mode
-      })));
+      // Create a new workbook and worksheet
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Transactions');
 
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+      // Add header row
+      worksheet.addRow(['Date', 'Time', 'Description', 'Amount', 'Type', 'Mode']);
 
-      XLSX.writeFile(workbook, "transactions.xlsx");
+      // Add data rows
+      resultList.forEach(item => {
+        worksheet.addRow([
+          new Date(item.date).toLocaleDateString(),
+          new Date(item.created).toLocaleTimeString(),
+          item.description,
+          `₹${item.amount.toFixed(2)}`,
+          item.type,
+          item.mode
+        ]);
+      });
+
+      // Generate buffer and trigger download
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'transactions.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting transactions:', error);
     }

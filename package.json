@@ -22,8 +22,9 @@
     "@vercel/speed-insights": "^1.1.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "exceljs": "^4.4.0",
     "lucide-react": "^0.445.0",
-    "next": "14.2.13",
+    "next": "^14.2.29",
     "next-themes": "^0.3.0",
     "pocketbase": "^0.21.5",
     "react": "^18",
@@ -31,8 +32,7 @@
     "react-speech-recognition": "^3.10.0",
     "recharts": "^2.12.7",
     "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7",
-    "xlsx": "^0.18.5"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/node": "^20",
