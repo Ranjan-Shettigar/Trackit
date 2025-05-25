@@ -28,6 +28,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/transactions', label: 'Transactions' },
     { href: '/analytics', label: 'Analytics' },
+    { href: '/ai', label: 'AI' },
     { href: '/settings', label: 'Settings' },
   ]
 

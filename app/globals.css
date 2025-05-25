@@ -131,6 +131,7 @@ body {
   top: 0;
   z-index: 1000;
   background-color: hsl(var(--lbackground));
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   animation: slideDown 0.5s ease-in-out;
 }
@@ -419,6 +420,7 @@ body {
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
     z-index: 40;
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
   }
 
