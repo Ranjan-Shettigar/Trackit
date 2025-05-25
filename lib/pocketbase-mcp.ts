@@ -155,10 +155,13 @@ export class PocketBaseMCP {
       throw new Error('Record not found or access denied');
     }
     await this.pb.collection(collection).delete(id);
+    const result = {
+      message: `Successfully deleted record ${id} from collection ${collection}`,
+    };
     return {
       content: [{
         type: 'text',
-        text: `Successfully deleted record ${id} from collection ${collection}`,
+        text: this.safeStringify(result),
       }],
     };
   }
@@ -203,7 +206,7 @@ export class PocketBaseMCP {
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify(analytics, null, 2),
+        text: this.safeStringify(analytics),
       }],
     };
   }
@@ -230,7 +233,7 @@ export class PocketBaseMCP {
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify(spendingByCategory, null, 2),
+        text: this.safeStringify(spendingByCategory),
       }],
     };
   }
@@ -269,7 +272,7 @@ export class PocketBaseMCP {
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify(summary, null, 2),
+        text: this.safeStringify(summary),
       }],
     };
   }
@@ -295,7 +298,7 @@ export class PocketBaseMCP {
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify(transactions, null, 2),
+        text: this.safeStringify(transactions),
       }],
     };
   }
@@ -313,7 +316,7 @@ export class PocketBaseMCP {
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify(transactions, null, 2),
+        text: this.safeStringify(transactions),
       }],
     };
   }
@@ -342,7 +345,7 @@ export class PocketBaseMCP {
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify(result, null, 2),
+        text: this.safeStringify(result),
       }],
     };
   }
@@ -379,7 +382,7 @@ export class PocketBaseMCP {
       },
       {
         name: 'get_user_analytics',
-        description: 'Get comprehensive analytics for the current user\'s transactions',
+        description: 'Get comprehensive financial analytics for the current user, including total income, total expenses, net balance (i.e., total balance or overall financial status), and category breakdowns.',
         inputSchema: {
           type: 'object',
           properties: {},

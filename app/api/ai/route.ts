@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     }
 
     // Initialize PocketBase MCP with user context
-    const mcpService = new PocketBaseMCP(process.env.POCKETBASE_URL || 'http://127.0.0.1:8090');
+    const mcpService = new PocketBaseMCP(process.env.POCKETBASE_URL || 'https://trackit.pockethost.io/');
     mcpService.setCurrentUser(userId, authToken);
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -36,13 +36,14 @@ User question: ${prompt}
 
 Instructions:
 1. If the user asks about their financial data, use the appropriate tools to fetch and analyze their data.
-2. Always ensure data security - you can only access data belonging to the authenticated user.
-3. Provide detailed, actionable insights based on the data.
-4. If you need to use a tool, specify the tool name and required parameters in your response.
+2. If the user asks for their "total balance", "net balance", "overall financial status", or similar general financial overview, use the "get_user_analytics" tool.
+3. Always ensure data security - you can only access data belonging to the authenticated user.
+4. Provide detailed, actionable insights based on the data.
+5. If you need to use a tool, specify the tool name and required parameters in your response.
 
 Available tool functions you can call:
 - list_user_records: Get user's records from any collection
-- get_user_analytics: Get comprehensive financial analytics
+- get_user_analytics: Get comprehensive financial analytics (use for total balance, net balance, overall status)
 - calculate_spending_by_category: Breakdown spending by categories
 - get_monthly_summary: Get monthly financial summary
 - find_transactions_by_amount: Find transactions by amount
