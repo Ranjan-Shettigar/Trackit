@@ -1,6 +1,7 @@
 import PocketBase from 'pocketbase';
 
-const pocketbaseUrl = 'https://trackit.pockethost.io/';
+const pocketbaseUrl = process.env.POCKETBASE_URL || 'http://127.0.0.1:8090/';
+
 let pb: PocketBase;
 
 if (typeof window !== 'undefined') {

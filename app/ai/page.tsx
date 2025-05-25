@@ -18,7 +18,6 @@ export default function AIPage() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
   const handleSendMessage = async () => {
     if (!input.trim()) return
 
@@ -29,17 +28,24 @@ export default function AIPage() {
     setError(null)
 
     try {
-      // Fetch transactions (replace with your actual data fetching logic)
-      const transactions = await pb.collection('transactions').getFullList({
-        sort: '-created',
-      });
+      // Get current user information
+      const userId = pb.authStore.model?.id;
+      const authToken = pb.authStore.token;
+
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
 
       const response = await fetch('/api/ai', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt: input, transactions }),
+        body: JSON.stringify({ 
+          prompt: input, 
+          userId,
+          authToken 
+        }),
       })
 
       if (!response.ok) {
