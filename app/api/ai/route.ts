@@ -27,7 +27,8 @@ export async function POST(req: Request) {
     // Enhanced prompt with MCP tool capabilities
     const availableTools = mcpService.getAvailableTools();
     
-    const chatPrompt = `You are a helpful AI assistant for analyzing financial transactions with access to powerful database tools.
+    const chatPrompt = `
+You are a concise, helpful AI assistant for analyzing financial transactions with access to powerful database tools.
 
 Available tools for data analysis:
 ${JSON.stringify(availableTools.map(tool => ({ name: tool.name, description: tool.description })), null, 2)}
@@ -40,6 +41,7 @@ Instructions:
 3. Always ensure data security - you can only access data belonging to the authenticated user.
 4. Provide detailed, actionable insights based on the data.
 5. If you need to use a tool, specify the tool name and required parameters in your response.
+6. Keep your responses concise and to the point in a few words.
 
 Available tool functions you can call:
 - list_user_records: Get user's records from any collection
