@@ -16,6 +16,17 @@ interface Message {
 }
 
 export default function AIPage() {
+  // Function to download message text as Markdown file
+  const downloadMarkdown = (content: string) => {
+    const blob = new Blob([content], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `response-${Date.now()}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -31,11 +42,11 @@ export default function AIPage() {
 
     try {
       // Get current user information
-      const userId = pb.authStore.model?.id;
-      const authToken = pb.authStore.token;
+      const userId = pb.authStore.model?.id
+      const authToken = pb.authStore.token
 
       if (!userId) {
-        throw new Error('User not authenticated');
+        throw new Error('User not authenticated')
       }
 
       const response = await fetch('/api/ai', {
@@ -43,10 +54,10 @@ export default function AIPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          prompt: input, 
+        body: JSON.stringify({
+          prompt: input,
           userId,
-          authToken 
+          authToken,
         }),
       })
 
@@ -60,9 +71,9 @@ export default function AIPage() {
       const aiMessage: Message = { id: Date.now().toString(), text: data.response, sender: 'ai' }
       setMessages((prevMessages: Message[]) => [...prevMessages, aiMessage])
     } catch (err: unknown) {
-      let errorMessageText = 'An unexpected error occurred.';
+      let errorMessageText = 'An unexpected error occurred.'
       if (err instanceof Error) {
-        errorMessageText = err.message;
+        errorMessageText = err.message
       }
       setError(errorMessageText)
       const errorMessage: Message = {
@@ -91,6 +102,14 @@ export default function AIPage() {
               }`}
             >
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+              {msg.sender === 'ai' && (
+                <button
+                  onClick={() => downloadMarkdown(msg.text)}
+                  className="text-sm text-blue-600 hover:underline mt-1"
+                >
+                  Download .md
+                </button>
+              )}
             </div>
           ))}
         </ScrollArea>
