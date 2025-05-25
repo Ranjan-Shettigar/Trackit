@@ -60,14 +60,8 @@ export class PocketBaseMCP {
   async executeTool(toolCall: McpToolCall): Promise<McpResponse> {
     try {
       switch (toolCall.name) {
-        case 'list_user_records':
-          return await this.listUserRecords(toolCall.arguments);
-        case 'create_user_record':
-          return await this.createUserRecord(toolCall.arguments);
-        case 'update_user_record':
-          return await this.updateUserRecord(toolCall.arguments);
-        case 'delete_user_record':
-          return await this.deleteUserRecord(toolCall.arguments);
+        case 'get_user_profile':
+          return await this.getUserProfile();
         case 'get_user_analytics':
           return await this.getUserAnalytics();
         case 'calculate_spending_by_category':
@@ -88,80 +82,19 @@ export class PocketBaseMCP {
     }
   }
 
-  private async listUserRecords(args: Record<string, unknown>): Promise<McpResponse> {
-    const { collection, filter, sort, page, perPage } = args as {
-      collection: string;
-      filter?: string;
-      sort?: string;
-      page?: number;
-      perPage?: number;
-    };
-    const options: Record<string, unknown> = {};
-    // Apply user security filter
-    options.filter = this.addUserFilter(filter);
-    if (sort) options.sort = sort;    const result = await this.pb.collection(collection).getList(
-      page || 1,
-      perPage || 50,
-      options
-    );
-
-    return {
-      content: [{
-        type: 'text',
-        text: this.safeStringify(result),
-      }],
-    };
-  }
-
-  private async createUserRecord(args: Record<string, unknown>): Promise<McpResponse> {
-    const { collection, data } = args as { collection: string; data: Record<string, unknown> };
-    // Ensure the record is associated with the current user
-    const recordData = {
-      ...data,
-      user: this.currentUserId,
-    };    const result = await this.pb.collection(collection).create(recordData);
-    return {
-      content: [{
-        type: 'text',
-        text: this.safeStringify(result),
-      }],
-    };
-  }
-
-  private async updateUserRecord(args: Record<string, unknown>): Promise<McpResponse> {
-    const { collection, id, data } = args as { collection: string; id: string; data: Record<string, unknown> };
-    // First verify the record belongs to the current user
-    const existingRecord = await this.pb.collection(collection).getOne(id, {
-      filter: this.addUserFilter(),
-    });
-    if (!existingRecord) {
-      throw new Error('Record not found or access denied');
-    }    const result = await this.pb.collection(collection).update(id, data);
-    return {
-      content: [{
-        type: 'text',
-        text: this.safeStringify(result),
-      }],
-    };
-  }
-
-  private async deleteUserRecord(args: Record<string, unknown>): Promise<McpResponse> {
-    const { collection, id } = args as { collection: string; id: string };
-    // First verify the record belongs to the current user
-    const existingRecord = await this.pb.collection(collection).getOne(id, {
-      filter: this.addUserFilter(),
-    });
-    if (!existingRecord) {
-      throw new Error('Record not found or access denied');
+  private async getUserProfile(): Promise<McpResponse> {
+    if (!this.currentUserId) {
+      throw new Error('User not authenticated');
     }
-    await this.pb.collection(collection).delete(id);
-    const result = {
-      message: `Successfully deleted record ${id} from collection ${collection}`,
-    };
+
+    // Fetch the user record by ID
+    const user = await this.pb.collection('users').getOne(this.currentUserId);
+
+    // Return only the username field
     return {
       content: [{
         type: 'text',
-        text: this.safeStringify(result),
+        text: this.safeStringify({ username: user.username }),
       }],
     };
   }
@@ -354,30 +287,11 @@ export class PocketBaseMCP {
   getAvailableTools() {
     return [
       {
-        name: 'list_user_records',
-        description: 'List records from a collection that belong to the current user',
+        name: 'get_user_profile',
+        description: 'Get the current user profile information',
         inputSchema: {
           type: 'object',
-          properties: {
-            collection: { type: 'string', description: 'Collection name' },
-            filter: { type: 'string', description: 'Additional filter query' },
-            sort: { type: 'string', description: 'Sort field and direction' },
-            page: { type: 'number', description: 'Page number' },
-            perPage: { type: 'number', description: 'Items per page' },
-          },
-          required: ['collection'],
-        },
-      },
-      {
-        name: 'create_user_record',
-        description: 'Create a new record associated with the current user',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            collection: { type: 'string', description: 'Collection name' },
-            data: { type: 'object', description: 'Record data' },
-          },
-          required: ['collection', 'data'],
+          properties: {},
         },
       },
       {

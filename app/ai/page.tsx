@@ -54,6 +54,7 @@ export default function AIPage() {
       }
 
       const data = await response.json()
+      console.log('AI API response:', data)
       const aiMessage: Message = { id: Date.now().toString(), text: data.response, sender: 'ai' }
       setMessages((prevMessages: Message[]) => [...prevMessages, aiMessage])
     } catch (err: unknown) {

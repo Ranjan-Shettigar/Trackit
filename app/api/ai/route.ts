@@ -60,14 +60,18 @@ Ensure the JSON for TOOL_CALL is valid, with all keys and string values enclosed
     // Check if the AI wants to use a tool
     if (text.includes('TOOL_CALL:')) {
       try {
-        const toolCallMatch = text.match(/TOOL_CALL:\s*(\{[\s\S]*?\})/); // Replaced . with [\s\S] and removed s flag
+        const toolCallMatch = text.match(/TOOL_CALL:\s*(\{[\s\S]*\})/); // Replaced . with [\s\S] and removed s flag
         if (toolCallMatch && toolCallMatch[1]) {
           const toolCallJSON = toolCallMatch[1];
-          const toolCall = JSON.parse(toolCallJSON);
-          
+          console.log('Extracted TOOL_CALL JSON:', toolCallJSON);
+          const toolCallRaw = JSON.parse(toolCallJSON);
+          // Convert toolName to name for MCP
+          const mcpToolCall = { name: toolCallRaw.toolName, arguments: toolCallRaw.arguments };
           // Execute the tool
-          const toolResult = await mcpService.executeTool(toolCall);
+          const toolResult = await mcpService.executeTool(mcpToolCall);
+          console.log('Raw tool execution result:', toolResult);
           const toolData = JSON.parse(toolResult.content[0].text);
+          console.log('Parsed toolData:', toolData);
 
           // Generate a new response with the tool data
           const followUpPrompt = `Based on the user's question: "${prompt}"
