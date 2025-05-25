@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import Layout from '@/components/layout'
 import pb from '@/utils/pocketbase'
 
@@ -88,7 +90,7 @@ export default function AIPage() {
                   : 'bg-gray-200 dark:bg-gray-700 text-black dark:text-white self-start mr-auto'
               }`}
             >
-              {msg.text}
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
             </div>
           ))}
         </ScrollArea>
