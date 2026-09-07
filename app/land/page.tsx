@@ -75,14 +75,6 @@ export default function LandingPage() {
             <Link href="/login" className="btn btn-primary">
               Start Free Trial
             </Link>
-
-            {/* Product Hunt Badge */}
-            <div className="product-hunt-badge">
-              <a href="https://www.producthunt.com/posts/trackitpay?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-trackitpay" target="_blank" rel="noopener noreferrer">
-                <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=605869&theme=dark" alt="TrackItPay - Simplify&#0032;Your&#0032;Finances&#0044;&#0032;Track&#0032;with&#0032;Ease&#0046; | Product Hunt" style={{ width: '224px', height: '48px' }} />
-              </a>
-            </div>
-          </div>
         </section>
 
         <section className="features" id="features">
