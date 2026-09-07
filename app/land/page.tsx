@@ -75,6 +75,7 @@ export default function LandingPage() {
             <Link href="/login" className="btn btn-primary">
               Start Free Trial
             </Link>
+          </div>
         </section>
 
         <section className="features" id="features">
